@@ -1,0 +1,97 @@
+<html lang="en">
+
+<head>
+
+    <title>地图描点工具</title>
+
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+          integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+            integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+            crossorigin=""></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+<body>
+<div id="data-v" style="height: 20%; overflow: auto">
+    <h2 align="center"> 坐标数据</h2>
+    <div v-for="(item, index) in latlngs">
+        <template v-if="item.layerType == 'polygon'">
+            <hr>
+            <h3>{{index+1}} 多边形</h3>
+            <p>
+                {{ item.value.getLatLngs()}}
+            </p>
+        </template>
+
+        <template v-if="item.layerType == 'polyline'">
+            <hr>
+            <h3>{{index+1}} polyline</h3>
+            <p>
+                {{ item.value.getLatLngs()}}
+            </p>
+        </template>
+        <template v-if="item.layerType == 'marker'">
+            <hr>
+            <h3>{{index+1}} marker</h3>
+            <p>
+                {{ item.value.getLatLng()}}
+            </p>
+        </template>
+
+
+    </div>
+</div>
+
+<div id="map" style="width: 100%; height:80%;"></div>
+
+
+<script>
+  var map = L.map('map').setView([35.42248987682641, 110.71763992309572], 13);
+  L.tileLayer('http://www.google.cn/maps/vt?lyrs=y@189&gl=cn&x={x}&y={y}&z={z}', {
+    attribution: '',
+  }).addTo(map);
+
+  var drawnItems = L.featureGroup().addTo(map);
+  var drawControl = new L.Control.Draw({
+    draw: {
+      rectangle: false,
+      circle: false,
+    },
+    edit: {
+      featureGroup: drawnItems,
+    },
+  });
+  map.addControl(drawControl);
+
+  map.on(L.Draw.Event.CREATED, function(event) {
+    var layer = event.layer;
+    drawnItems.addLayer(layer);
+    vue.$data.latlngs.push({'value': layer, 'layerType': event.layerType});
+  });
+
+  // map.on('draw:edited', function(e) {
+  //   var layers = e.layers;
+  //   var arr = [];
+  //   layers.eachLayer(function(layer) {
+  //     arr.push({'value': layer});
+  //   });
+  //   vue.$data.latlngs = arr;
+  // });
+
+</script>
+<script>
+  var vue = new Vue({
+    el: '#data-v',
+    data: {
+      latlngs: [],
+    },
+  });
+</script>
+</body>
+
+
+</html>
